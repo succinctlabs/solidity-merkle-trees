@@ -5,6 +5,15 @@ pragma solidity ^0.8.17;
 import { Bytes, ByteSlice } from "../Bytes.sol";
 
 library ScaleCodec {
+    // Decodes a SCALE encoded uint64 by converting bytes (bid endian) to little endian format
+    function decodeUint64(bytes memory data) internal pure returns (uint64) {
+        uint64 number;
+        for (uint256 i = data.length; i > 0; i--) {
+            number = number + uint64(uint8(data[i - 1])) * uint64(2**(8 * (i - 1)));
+        }
+        return number;
+    }
+
     // Decodes a SCALE encoded uint256 by converting bytes (bid endian) to little endian format
     function decodeUint256(bytes memory data) internal pure returns (uint256) {
         uint256 number;
