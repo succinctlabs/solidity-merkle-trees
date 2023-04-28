@@ -9,7 +9,7 @@ import "../src/trie/substrate/ScaleCodec.sol";
 import "../src/trie/NibbleSlice.sol";
 
 contract MerklePatriciaTest is Test {
-    function testSubstrateMerklePatricia() public pure {
+    function testSubstrateMerklePatricia() public view {
         bytes[] memory keys = new bytes[](1);
         // trie key for pallet_timestamp::Now
         keys[0] = hex"f0c365c3cf59d671eb72da0e7a4113c49f1f0515f462cdcf84e0f1d6045dfcbb";
@@ -39,23 +39,25 @@ contract MerklePatriciaTest is Test {
         assertEq(ScaleCodec.decodeUintCompact(ByteSlice(value, 4)), 1679661054045);
     }
 
-    /*
     function testSubstrateMerklePatriciaEventIndex() public {
         bytes[] memory keys = new bytes[](1);
         // trie key for pallet_Babe::EpochIndex
         keys[0] = hex"1cb6f36e027abb2091cfb5110ab5087f38316cbf8fa0da822a20ac1c55bf1be3";
 
-        bytes[] memory proof = new bytes[](1);
+        bytes[] memory proof = new bytes[](4);
         proof[0] =
-        hex"8100110034402c280401000b5db899138701804f1dc18c0729c67df638dcb17ff86372be663d0d85339a845510498c6c42fc3b";
+        hex"8000148065a1214a991ac85d93f38385d6f52af7b4ddcf56e589fcb92c8d9e8f27291c9280ee666acec9fb8cd7365177fe208a2cf6fba23782ab0fb5854d51c1e1ad0fe218";
+        proof[1] =
+        hex"9eb6f36e027abb2091cfb5110ab5087ff96c685f06155b3cd9a8c9e5e9a23fd5dc13a5ed20f2aa020500000000685f08316cbf8fa0da822a20ac1c55bf1be320880c000000000000505f0e7b9012096b41c4eb3aaf947f6ea42908000080188a2eb879c7954afd781373437adb2bf42bf57f5ca6db151a9d7024de0ea2488020ce287f9ce3d5a528c407430571d6c65130948d4f7db27a7130d1bfc093b824803181543408d4f9a8f228228d2fd281b6cbe08b32aea8625efc3700705c1ae14b80426238e6604289bc2dcd2550dc75dace3baf52f20fc22831c3684b8684bafb4b80b197254013251373510c7d8dc69a553f44cbb025dc605d549db7b6c58c75f61e80ce174de7a74d4b6d335d2af315296c56df41081ed69bb49cca293d94853024e3685f090e2fbf2d792cb324bffa9427fe1f0e2037cc0800d8cc0800";
+        proof[2] =
+        hex"80eef780628206558dfb36849be6688f8d81bbf107d636b3204d7b9b4436c9db5091815e8063dc3e4db7f195838c007ad0f5069c6cc028025442555f1207c9a3364cc438c480700a088ddf7f878238871f0bbcb3a696ca746438a964ef14c8718f1cdcb8fb52809c6b07d10ceee871fde9d14503d41229ce7c1be8bb1797d2280efcf2b25fe10280bfaff3153a942398e2ff81bf4d68dd479204b4f0e40c2080a1568c608625360f80c55e6794db9f6aef3917f5b0da28ff18d812e5627b62989d6272491bfdbbc27f804a7d38fe753184553cd50f55f5fb73b60c7bf124b0921aa1065743dcf001d39a80cb506a4862eaf26452f49c62a348bfdb41c56c1e52e351f097fd91208fb11e7f80a8e512184f16536b886d917e281233552da74d559df8f3417ea48b69115d0a798065a9cef34d5987b34228efa18b3ce9ceeb93b8013fe0c6a1db6b9cb2530e8cfc80d476a007da708aeef421d3eecbe43bf84a0d7d290accb5b6ef94d801614bede980be5ed71a519ac2d3e0b7f16ff99f12aa76de574a4b0a65c08ef664e88393d25580731a4dedef40700bbe3fb131a481f9ec97fd2ab2cb3897b3a0ac78eebfad3744";
 
-        bytes32 root = hex"9ec7b55dd538898d95dec220abf8f60e8c626bdb4a348d117d1ecaa564cb565c";
+        bytes32 root = hex"110769b4c5b850bd3b8276b39daf6dece324cef62e214c3768a7a12da7a8ff7c";
         bytes memory value = MerklePatricia.VerifySubstrateProof(root, proof, keys)[0];
-        assertEq(ScaleCodec.decodeUintCompact(ByteSlice(value, 4)), 1679661054045);
+        assertEq(ScaleCodec.decodeUint64(value), 3208);
     }
-    */
 
-    function VerifyKeys(bytes32 root, bytes[] memory proof, bytes[] memory keys) public pure returns (bytes[] memory) {
+    function VerifyKeys(bytes32 root, bytes[] memory proof, bytes[] memory keys) public view returns (bytes[] memory) {
         return MerklePatricia.VerifySubstrateProof(root, proof, keys);
     }
 

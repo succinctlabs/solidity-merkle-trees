@@ -212,12 +212,13 @@ library Blake2b {
     	return ret;
     }    
 
-    function blake2b(bytes memory input, uint input_len, uint digest_size)
+    function blake2b(bytes memory input, uint digest_size)
             internal
             view
             returns (bytes memory)
     {
         // pad the input to be a multiple of 128 bytes
+        uint input_len = input.length;
         uint padding_len = 128 - (input_len % 128);
         if (padding_len > 0) {
             bytes memory padding = new bytes(padding_len);

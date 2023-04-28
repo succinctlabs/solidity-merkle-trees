@@ -1,11 +1,13 @@
 pragma solidity ^0.8.17;
 
+import "./trie/Bytes.sol";
 import "./trie/Node.sol";
 import "./trie/Option.sol";
 import "./trie/NibbleSlice.sol";
 import "./trie/TrieDB.sol";
 
 import "./trie/substrate/SubstrateTrieDB.sol";
+import "./trie/substrate/Blake2b.sol";
 import "./trie/ethereum/EthereumTrieDB.sol";
 
 // SPDX-License-Identifier: Apache2
@@ -30,14 +32,15 @@ library MerklePatricia {
       */
      function VerifySubstrateProof(bytes32 root, bytes[] memory proof,  bytes[] memory keys)
           internal
-          pure
+          view
           returns (bytes[] memory)
      {
           bytes[] memory values = new bytes[](keys.length);
           TrieNode[] memory nodes = new TrieNode[](proof.length);
 
           for (uint256 i = 0; i < proof.length; i++) {
-               nodes[i] = TrieNode(keccak256(proof[i]), proof[i]);
+               //nodes[i] = TrieNode(keccak256(proof[i]), proof[i]);
+               nodes[i] = TrieNode(Bytes.toBytes32(Blake2b.blake2b(proof[i], 32)), proof[i]);
           }
 
           for (uint256 i = 0; i < keys.length; i++) {
@@ -98,7 +101,7 @@ library MerklePatricia {
       */
      function ReadChildProofCheck(bytes32 root, bytes[] memory proof, bytes[] memory keys, bytes memory childInfo)
           internal
-          pure
+          view
           returns (bytes[] memory)
      {
           // fetch the child trie root hash;
