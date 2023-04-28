@@ -2,6 +2,7 @@ pragma solidity ^0.8.17;
 pragma experimental ABIEncoderV2;
 
 import { Memory } from "../Memory.sol";
+import { Bytes } from "../Bytes.sol";
 
 library Blake2b {
     struct Instance {
@@ -198,22 +199,6 @@ library Blake2b {
         }
     }
 
-	// From https://ethereum.stackexchange.com/a/43890
-	function concat(bytes memory self, bytes memory other)
-            internal
-            pure
-	        returns (bytes memory) 
-    {
-    	bytes memory ret = new bytes(self.length + other.length);
-    	(uint src, uint srcLen) = Memory.fromBytes(self);
-    	(uint src2, uint src2Len) = Memory.fromBytes(other);
-    	(uint dest,) = Memory.fromBytes(ret);
-    	uint dest2 = dest + srcLen;
-    	Memory.copy(src, dest, srcLen);
-    	Memory.copy(src2, dest2, src2Len);
-    	return ret;
-    }    
-
     function blake2b(bytes memory input, uint digest_size)
             internal
             view
@@ -224,7 +209,7 @@ library Blake2b {
         uint padding_len = 128 - (input_len % 128);
         if (padding_len > 0) {
             bytes memory padding = new bytes(padding_len);
-            input = concat(input, padding);
+            input = Bytes.concat(input, padding);
         }
         Instance memory instance = Blake2b.init(hex"", digest_size);
         return finalize(instance, input, input_len);
