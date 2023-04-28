@@ -57,7 +57,6 @@ contract MerklePatriciaTest is Test {
         assertEq(ScaleCodec.decodeUint64(value), 3208);
     }
 
-
     function testSubstrateMerklePatriciaEvents() public {
         bytes[] memory keys = new bytes[](1);
         // trie key for System::Events

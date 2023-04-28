@@ -181,18 +181,20 @@ library Blake2b {
         view
         returns (bytes memory output)
     {
-        // FIXME: support incomplete blocks (zero pad them)
         assert((data.length % 128) == 0);
         update_loop(instance, data, data_len, true);
 
         // FIXME: support other lengths
-        //assert(instance.out_len == 64);
+        assert(instance.out_len == 64 || instance.out_len == 32);
 
         bytes memory state = instance.state;
+        uint out_len = instance.out_len;
         output = new bytes(instance.out_len);
         assembly {
             mstore(add(output, 32), mload(add(state, 36)))
-            mstore(add(output, 64), mload(add(state, 68)))
+            if eq(out_len, 64) {
+                mstore(add(output, 64), mload(add(state, 68)))
+            }
         }
     }
 
