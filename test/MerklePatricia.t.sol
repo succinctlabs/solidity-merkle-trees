@@ -28,7 +28,6 @@ contract MerklePatriciaTest is Test {
 
     function testSubstrateMerklePatriciaSingleNode() public {
         bytes[] memory keys = new bytes[](1);
-        // trie key for pallet_timestamp::Now
         keys[0] = hex"00";
 
         bytes[] memory proof = new bytes[](1);
@@ -39,6 +38,22 @@ contract MerklePatriciaTest is Test {
         bytes memory value = MerklePatricia.VerifySubstrateProof(root, proof, keys)[0];
         assertEq(ScaleCodec.decodeUintCompact(ByteSlice(value, 4)), 1679661054045);
     }
+
+    /*
+    function testSubstrateMerklePatriciaEventIndex() public {
+        bytes[] memory keys = new bytes[](1);
+        // trie key for pallet_Babe::EpochIndex
+        keys[0] = hex"1cb6f36e027abb2091cfb5110ab5087f38316cbf8fa0da822a20ac1c55bf1be3";
+
+        bytes[] memory proof = new bytes[](1);
+        proof[0] =
+        hex"8100110034402c280401000b5db899138701804f1dc18c0729c67df638dcb17ff86372be663d0d85339a845510498c6c42fc3b";
+
+        bytes32 root = hex"9ec7b55dd538898d95dec220abf8f60e8c626bdb4a348d117d1ecaa564cb565c";
+        bytes memory value = MerklePatricia.VerifySubstrateProof(root, proof, keys)[0];
+        assertEq(ScaleCodec.decodeUintCompact(ByteSlice(value, 4)), 1679661054045);
+    }
+    */
 
     function VerifyKeys(bytes32 root, bytes[] memory proof, bytes[] memory keys) public pure returns (bytes[] memory) {
         return MerklePatricia.VerifySubstrateProof(root, proof, keys);
