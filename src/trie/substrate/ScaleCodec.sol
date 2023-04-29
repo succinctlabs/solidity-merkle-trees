@@ -58,7 +58,7 @@ library ScaleCodec {
         } else if (mode == 3) {
             // [1073741824, 4503599627370496]
             uint8 l = (b >> 2) + 4; // remove mode bits
-            require(l <= 8, "unexpected prefix decoding Compact<Uint>");
+            require(l <= 32, "unexpected prefix decoding Compact<Uint>");
             return decodeUint256(Bytes.read(data, l));
         } else {
             revert("Code should be unreachable");
