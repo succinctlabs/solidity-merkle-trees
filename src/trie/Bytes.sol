@@ -60,6 +60,20 @@ library Bytes {
         return slice;
     }
 
+    function readCalldataToMemory(
+        bytes calldata self
+    ) internal pure returns (bytes memory) {
+        bytes memory copy;
+
+        assembly {
+            let len := calldataload(0x24)
+            mload(copy, len);
+            calldatacopy(add(copy, 0x20), add(0x24, 0x20), len)
+        }
+
+        return copy;
+    }
+
     // Copies a section of 'self' into a new array, starting at the provided 'startIndex'.
     // Returns the new copy.
     // Requires that 'startIndex <= self.length'
@@ -125,6 +139,17 @@ library Bytes {
         require(self.length >= 32, "Bytes:: toBytes32: data is to short.");
         assembly {
             out := mload(add(self, 32))
+        }
+    }
+
+    function toBytes32Calldata(bytes calldata self)
+        internal
+        pure
+        returns (bytes32 out)
+    {
+        require(self.length >= 32, "Bytes:: toBytes32: data is to short.");
+        assembly {
+            out := mload(add(36, 32))
         }
     }
 

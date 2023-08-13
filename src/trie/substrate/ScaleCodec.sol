@@ -23,6 +23,15 @@ library ScaleCodec {
         return number;
     }
 
+    // Decodes a SCALE encoded uint256 by converting bytes (bid endian) to little endian format
+    function decodeUint256Calldata(bytes calldata data) internal pure returns (uint256) {
+        uint256 number;
+        for (uint256 i = data.length; i > 0; i--) {
+            number = number + uint256(uint8(data[i - 1])) * (2**(8 * (i - 1)));
+        }
+        return number;
+    }
+
     // Decodes a SCALE encoded compact unsigned integer
     function decodeUintCompact(ByteSlice memory data)
     internal
@@ -109,6 +118,56 @@ library ScaleCodec {
             revert("Code should be unreachable");
         }
         return (value, mode);
+    }
+
+    // Decodes a SCALE encoded compact unsigned integer
+    function decodeUintCompactCalldata(bytes calldata data)
+    internal
+    pure
+    returns (uint256 v, uint256 bytesRead)
+    {
+        uint8 b = uint8(data[0]); // read the first byte
+        bytesRead += 1;
+        uint8 mode = b % 4; // bitwise operation
+
+        uint256 value;
+        if (mode == 0) {
+            // [0, 63]
+            value = b >> 2; // right shift to remove mode bits
+        } else if (mode == 1) {
+            // [64, 16383]
+            uint8 bb = uint8(data[bytesRead]); // read the second byte
+            bytesRead += 1;
+            uint64 r = bb; // convert to uint64
+            r <<= 6; // multiply by * 2^6
+            r += b >> 2; // right shift to remove mode bits
+            value = r;
+        } else if (mode == 2) {
+            // [16384, 1073741823]
+            uint8 b2 = uint8(data[bytesRead]); // read the next 3 bytes
+            bytesRead += 1;
+            uint8 b3 = uint8(data[bytesRead]);
+            bytesRead += 1;
+            uint8 b4 = uint8(data[bytesRead]);
+            bytesRead += 1;
+
+            uint32 x1 = uint32(b) | (uint32(b2) << 8); // convert to little endian
+            uint32 x2 = x1 | (uint32(b3) << 16);
+            uint32 x3 = x2 | (uint32(b4) << 24);
+
+            x3 >>= 2; // remove the last 2 mode bits
+            value = uint256(x3);
+        } else if (mode == 3) {
+            // [1073741824, 4503599627370496]
+            uint8 l = (b >> 2) + 4; // remove mode bits
+            require(l <= 32, "unexpected prefix decoding Compact<Uint>");
+            value = decodeUint256(data[byteRead:bytesRead + l]);
+            bytesRead += l;
+            return (value, bytesRead);
+        } else {
+            revert("Code should be unreachable");
+        }
+        return (value, bytesRead);
     }
 
     // The biggest compact supported uint is 2 ** 536 - 1. 
