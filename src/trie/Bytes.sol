@@ -60,9 +60,9 @@ library Bytes {
         return slice;
     }
 
-    function readCalldataToMemory()
-        internal pure returns (bytes memory)
-    {
+    function readCalldataToMemory(
+        bytes calldata self
+    ) internal pure returns (bytes memory) {
         bytes memory copy;
 
         assembly {
