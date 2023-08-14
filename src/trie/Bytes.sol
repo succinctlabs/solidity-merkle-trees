@@ -60,14 +60,14 @@ library Bytes {
         return slice;
     }
 
-    function readCalldataToMemory(
-        bytes calldata self
-    ) internal pure returns (bytes memory) {
+    function readCalldataToMemory()
+        internal pure returns (bytes memory)
+    {
         bytes memory copy;
 
         assembly {
             let len := calldataload(0x24)
-            mstore(copy, len);
+            mstore(copy, len)
             calldatacopy(add(copy, 0x20), add(0x24, 0x20), len)
         }
 
