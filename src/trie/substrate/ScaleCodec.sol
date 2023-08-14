@@ -14,6 +14,15 @@ library ScaleCodec {
         return number;
     }
 
+    // Decodes a SCALE encoded uint64 by converting bytes (bid endian) to little endian format
+    function decodeUint64Calldata(bytes calldata data) internal pure returns (uint64) {
+        uint64 number;
+        for (uint256 i = data.length; i > 0; i--) {
+            number = number + uint64(uint8(data[i - 1])) * uint64(2**(8 * (i - 1)));
+        }
+        return number;
+    }
+
     // Decodes a SCALE encoded uint256 by converting bytes (bid endian) to little endian format
     function decodeUint256(bytes memory data) internal pure returns (uint256) {
         uint256 number;
@@ -161,7 +170,7 @@ library ScaleCodec {
             // [1073741824, 4503599627370496]
             uint8 l = (b >> 2) + 4; // remove mode bits
             require(l <= 32, "unexpected prefix decoding Compact<Uint>");
-            value = decodeUint256(data[byteRead:bytesRead + l]);
+            value = decodeUint256(data[bytesRead:bytesRead + l]);
             bytesRead += l;
             return (value, bytesRead);
         } else {

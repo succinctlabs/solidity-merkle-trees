@@ -67,7 +67,7 @@ library Bytes {
 
         assembly {
             let len := calldataload(0x24)
-            mload(copy, len);
+            mstore(copy, len);
             calldatacopy(add(copy, 0x20), add(0x24, 0x20), len)
         }
 
