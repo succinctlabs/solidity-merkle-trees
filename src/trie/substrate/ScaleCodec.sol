@@ -5,17 +5,47 @@ pragma solidity ^0.8.17;
 import { Bytes, ByteSlice } from "../Bytes.sol";
 
 library ScaleCodec {
-    // Decodes a SCALE encoded uint64 by converting bytes (bid endian) to little endian format
-    function decodeUint64(bytes memory data) internal pure returns (uint64) {
-        uint64 number;
-        for (uint256 i = data.length; i > 0; i--) {
-            number = number + uint64(uint8(data[i - 1])) * uint64(2**(8 * (i - 1)));
+    // Decodes a SCALE encoded uint8 by converting bytes (bid endian) to little endian format
+    function decodeUint8Calldata(uint256 calldataAddress)
+        internal
+        pure
+        returns (uint8 out)
+    {
+        bytes32 byt;
+        assembly {
+            byt := calldataload(calldataAddress)
         }
-        return number;
+        out = uint8(byt[0]);
+    }
+
+    // Decodes a SCALE encoded uint16 by converting bytes (bid endian) to little endian format
+    function decodeUint16Calldata(uint256 calldataAddress)
+        internal
+        pure
+        returns (uint16 out)
+    {
+        bytes32 byt;
+        assembly {
+            byt := calldataload(calldataAddress)
+        }
+        out += uint16(uint8(byt[0]));
+        out += (uint16(uint8(byt[1])) << 8);
     }
 
     // Decodes a SCALE encoded uint64 by converting bytes (bid endian) to little endian format
-    function decodeUint64Calldata(bytes calldata data) internal pure returns (uint64) {
+    function decodeUint64Calldata(uint256 calldataAddress) internal pure returns (uint64 out) {
+        bytes32 byt;
+        assembly {
+            byt := calldataload(calldataAddress)
+        }
+        out += uint16(uint8(byt[0]));
+        out += (uint16(uint8(byt[1])) << 8);
+        out += (uint16(uint8(byt[2])) << 16);
+        out += (uint16(uint8(byt[3])) << 24);
+    }
+
+    // Decodes a SCALE encoded uint64 by converting bytes (bid endian) to little endian format
+    function decodeUint64(bytes memory data) internal pure returns (uint64) {
         uint64 number;
         for (uint256 i = data.length; i > 0; i--) {
             number = number + uint64(uint8(data[i - 1])) * uint64(2**(8 * (i - 1)));
@@ -173,6 +203,60 @@ library ScaleCodec {
             value = decodeUint256(data[bytesRead:bytesRead + l]);
             bytesRead += l;
             return (value, bytesRead);
+        } else {
+            revert("Code should be unreachable");
+        }
+        return (value, bytesRead);
+    }
+
+    // Decodes a SCALE encoded compact unsigned integer
+    function decodeUintCompactCalldata(uint256 calldataAddress)
+    internal
+    pure
+    returns (uint256 v, uint256 bytesRead)
+    {
+        uint8 b = decodeUint8Calldata(calldataAddress);
+        bytesRead += 1;
+        uint8 mode = b % 4; // bitwise operation
+
+        uint256 value;
+        if (mode == 0) {
+            // [0, 63]
+            value = b >> 2; // right shift to remove mode bits
+        } else if (mode == 1) {
+            // [64, 16383]
+            uint8 bb = decodeUint8Calldata(calldataAddress + bytesRead); // read the second byte
+            bytesRead += 1;
+            uint64 r = bb; // convert to uint64
+            r <<= 6; // multiply by * 2^6
+            r += b >> 2; // right shift to remove mode bits
+            value = r;
+        } else if (mode == 2) {
+            // [16384, 1073741823]
+            // TODO:  Can retrieve all the bytes in one call
+            uint8 b2 = decodeUint8Calldata(calldataAddress + bytesRead); // read the next 3 bytes
+            bytesRead += 1;
+            uint8 b3 = decodeUint8Calldata(calldataAddress + bytesRead);
+            bytesRead += 1;
+            uint8 b4 = decodeUint8Calldata(calldataAddress + bytesRead);
+            bytesRead += 1;
+
+            uint32 x1 = uint32(b) | (uint32(b2) << 8); // convert to little endian
+            uint32 x2 = x1 | (uint32(b3) << 16);
+            uint32 x3 = x2 | (uint32(b4) << 24);
+
+            x3 >>= 2; // remove the last 2 mode bits
+            value = uint256(x3);
+        } else if (mode == 3) {
+            revert("mode 3 not supported for decodeUintCompactCalldata");
+            /*
+            // [1073741824, 4503599627370496]
+            uint8 l = (b >> 2) + 4; // remove mode bits
+            require(l <= 32, "unexpected prefix decoding Compact<Uint>");
+            value = decodeUint256(data[bytesRead:bytesRead + l]);
+            bytesRead += l;
+            return (value, bytesRead);
+            */
         } else {
             revert("Code should be unreachable");
         }
